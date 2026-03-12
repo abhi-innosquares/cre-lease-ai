@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { askPortfolioQuestion } from "../api";
+import { askPortfolioQuestion, getGreeting } from "../api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +43,25 @@ function PortfolioChatPage() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const currentLeaseContext = extractLastReferencedLeaseId(history);
+  const [greetingFetched, setGreetingFetched] = useState(false);
+
+  // Fetch and add greeting message on first load
+  useEffect(() => {
+    if (history.length === 0 && !greetingFetched) {
+      getGreeting()
+        .then((res) => {
+          const greetingMsg = { role: "assistant", content: res.data.greeting };
+          setHistory([greetingMsg]);
+          setGreetingFetched(true);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch greeting:", err);
+          setGreetingFetched(true);
+        });
+    } else {
+      setGreetingFetched(true);
+    }
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,7 +104,15 @@ function PortfolioChatPage() {
   };
 
   const clearChat = () => {
-    setHistory([]);
+    // Refetch greeting and reset
+    getGreeting()
+      .then((res) => {
+        const greetingMsg = { role: "assistant", content: res.data.greeting };
+        setHistory([greetingMsg]);
+      })
+      .catch(() => {
+        setHistory([]);
+      });
     setQuestion("");
     try {
       localStorage.removeItem(PORTFOLIO_CHAT_STORAGE_KEY);

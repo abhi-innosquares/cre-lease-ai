@@ -18,6 +18,9 @@ class LeaseState(TypedDict, total=False):
     sanity_flags: list
     lease_id: int
     execution_log: list
+    user_query: str
+    chat_history: list
+    chat_response: str
 
 
 # ---------------------------

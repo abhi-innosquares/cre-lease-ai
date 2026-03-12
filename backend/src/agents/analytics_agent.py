@@ -244,7 +244,16 @@ def analytics_agent(state: dict):
         create_vector_store(lease_id_value, raw_text)
         state.setdefault("execution_log", []).append(f"Vector store created for lease {lease_id_value}")
     except Exception as exc:
-        logger.error("Vector store creation failed for lease %s: %s", lease_id_value, exc)
+        # provide extra diagnostic information; the raw_text is often large so only
+        # log a snippet and its type/length to help diagnose unexpected values
+        snippet = repr(raw_text[:200]) if isinstance(raw_text, str) else repr(raw_text)
+        logger.error(
+            "Vector store creation failed for lease %s: %s; raw_text snippet=%s; raw_text_type=%s",
+            lease_id_value,
+            exc,
+            snippet,
+            type(raw_text),
+        )
         state.setdefault("execution_log", []).append(f"Vector store creation failed: {exc}")
 
     state.setdefault("execution_log", []).append("Analytics agent completed")

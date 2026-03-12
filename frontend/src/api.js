@@ -13,6 +13,12 @@ export const getPortfolioAnalytics = () =>
 export const askPortfolioQuestion = (payload) =>
   API.post("/chat/portfolio", payload);
 
+export const getGreeting = () =>
+  API.get("/chat/greeting");
+
+export const askLeaseQuestion = (payload) =>
+  API.post("/chat", payload);
+
 export const getAllLeaseAnalytics = () =>
   API.get("/analytics/leases");
 

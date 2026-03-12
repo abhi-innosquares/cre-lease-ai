@@ -13,15 +13,24 @@ from src.agents.chat_agent import chat_agent
 
 router = APIRouter()
 
+GREETING_MESSAGE = """Hello! 👋 I'm your lease portfolio assistant. I can help you analyze, search, and understand your commercial leases across your entire portfolio. Feel free to ask me questions about lease expiration dates, renewal options, tenant information, financial terms, or any other lease-related details. What would you like to know?"""
+
 
 class ChatRequest(BaseModel):
     lease_id: int
     user_query: str   # ✅ MATCH FRONTEND
+    chat_history: list[dict[str, Any]] = []  # NEW: Two-way communication
 
 
 class PortfolioChatRequest(BaseModel):
     user_query: str
     chat_history: list[dict[str, Any]] = []
+
+
+@router.get("/chat/greeting")
+def get_greeting():
+    """Return greeting message for new chat sessions"""
+    return {"greeting": GREETING_MESSAGE}
 
 
 @router.post("/chat")
@@ -37,7 +46,9 @@ def chat(payload: ChatRequest):
     state = {
         "structured_data": json.loads(lease.structured_data),
         "raw_text": lease.raw_text,
-        "user_query": payload.user_query
+        "user_query": payload.user_query,
+        "chat_history": payload.chat_history or [],  # NEW: Pass chat history for context reach
+        "lease_id": payload.lease_id
     }
 
     result = chat_agent(state)
@@ -209,22 +220,31 @@ def portfolio_chat(payload: PortfolioChatRequest):
             "answer": "Could you please specify which lease you would like to know more about? You can refer to the lease by its lease ID."
         }
 
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)  # Slightly higher temperature for more natural responses
 
     prompt = f"""
-    You are an enterprise lease portfolio assistant.
+    You are a friendly and professional enterprise lease portfolio assistant. Speak naturally like a real estate expert helping a colleague.
+    
+    IMPORTANT STYLE GUIDELINES:
+    - Be conversational and human-like, not robotic or formal
+    - Use natural language and complete sentences
+    - Avoid bullet points and numbered lists unless specifically requested
+    - If showing multiple leases, mention them naturally in flowing paragraphs
+    - When relevant, group leases by region or characteristics naturally
+    - Show empathy and provide context
+    - Don't just repeat data - provide analysis and insights
+    - Use phrases like "I found...", "Looking at your portfolio...", "Here's what I see..."
+    
+    Previous conversation context:
+    {json.dumps([{"role": msg.get("role"), "content": msg.get("content", "")[:200]} for msg in chat_history[-6:]], indent=2)}
 
-    Answer ONLY from the provided portfolio dataset. If uncertain or unavailable, say it is not available.
-    When possible, include lease IDs in the answer.
-
-    Prior conversation (oldest to newest):
-    {json.dumps(chat_history[-12:], indent=2)}
-
-    Portfolio leases data:
+    Your portfolio data:
     {json.dumps(lease_context, indent=2)}
 
-    User question:
+    User's question:
     {query}
+    
+    Provide a natural, conversational answer based on the portfolio data above. Always cite lease IDs when mentioning specific leases.
     """
 
     response = llm.invoke(prompt)
