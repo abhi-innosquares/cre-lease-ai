@@ -24,6 +24,7 @@ class Settings:
     OPENAI_MODEL: str = "gpt-4o"
     OPENAI_TEMPERATURE: float = 0.1
     OPENAI_MAX_TOKENS: int = 4000
+    AUTO_TRANSLATE_TO_ENGLISH: bool = os.environ.get("AUTO_TRANSLATE_TO_ENGLISH", "true").lower() == "true"
 
     # Currency normalization configuration
     BASE_CURRENCY: str = os.environ.get("BASE_CURRENCY", "USD")

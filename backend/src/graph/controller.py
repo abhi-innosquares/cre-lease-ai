@@ -15,6 +15,8 @@ class LeaseState(TypedDict, total=False):
     source_filename: str
     source_s3_key: str
     raw_text: str
+    raw_text_original: str
+    translation_meta: Dict[str, Any]
     structured_data: Dict[str, Any]
     analytics_result: Dict[str, Any]
     sanity_flags: list

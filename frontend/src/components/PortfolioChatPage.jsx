@@ -45,25 +45,22 @@ function PortfolioChatPage() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const currentLeaseContext = extractLastReferencedLeaseId(history);
-  const [greetingFetched, setGreetingFetched] = useState(false);
 
   // Fetch and add greeting message on first load
   useEffect(() => {
-    if (history.length === 0 && !greetingFetched) {
-      getGreeting()
-        .then((res) => {
-          const greetingMsg = { role: "assistant", content: res.data.greeting };
-          setHistory([greetingMsg]);
-          setGreetingFetched(true);
-        })
-        .catch((err) => {
-          console.error("Failed to fetch greeting:", err);
-          setGreetingFetched(true);
-        });
-    } else {
-      setGreetingFetched(true);
+    if (history.length !== 0) {
+      return;
     }
-  }, []);
+
+    getGreeting()
+      .then((res) => {
+        const greetingMsg = { role: "assistant", content: res.data.greeting };
+        setHistory((existingHistory) => (existingHistory.length === 0 ? [greetingMsg] : existingHistory));
+      })
+      .catch((err) => {
+        console.error("Failed to fetch greeting:", err);
+      });
+  }, [history.length]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
