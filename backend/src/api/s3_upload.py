@@ -146,12 +146,17 @@ def _run_job(job_id: str, filename: str, s3_key: str):
         s3 = _get_s3_client()
         s3.download_file(Settings.AWS_S3_BUCKET, s3_key, local_path)
 
-        result = graph.invoke({"file_path": local_path})
+        result = graph.invoke({
+            "file_path": local_path,
+            "source_filename": filename,
+            "source_s3_key": s3_key,
+        })
 
         with _jobs_lock:
             _jobs[job_id]["status"] = "done"
             _jobs[job_id]["result"] = {
                 "filename": filename,
+                "source_s3_key": s3_key,
                 "lease_id": result.get("lease_id"),
                 "structured_data": result.get("structured_data"),
                 "analytics_result": result.get("analytics_result"),

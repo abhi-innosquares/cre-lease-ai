@@ -24,7 +24,12 @@ function PortfolioCard() {
         </div>
         <div className="rounded-lg border bg-white/60 p-4">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Average Rent</p>
-          <p className="mt-2 text-2xl font-semibold">{data.average_rent}</p>
+          <p className="mt-2 text-2xl font-semibold">{data.average_rent_display ?? "—"}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {data.source_currencies?.length > 1
+              ? `Normalized from ${data.source_currencies.join(", ")} into ${data.average_rent_currency}`
+              : `Portfolio basis: ${data.average_rent_currency ?? "—"}`}
+          </p>
         </div>
         <div className="rounded-lg border bg-white/60 p-4">
           <p className="text-xs uppercase tracking-widest text-muted-foreground">High Risk Leases</p>

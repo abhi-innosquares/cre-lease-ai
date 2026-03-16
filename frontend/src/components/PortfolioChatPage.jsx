@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { askPortfolioQuestion, getGreeting } from "../api";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -173,7 +175,22 @@ function PortfolioChatPage() {
                   : "self-start bg-slate-100 text-slate-800"
               }`}
             >
-              {msg.content}
+              {msg.role === "assistant" ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="mb-2 list-disc pl-5 last:mb-0">{children}</ul>,
+                    ol: ({ children }) => <ol className="mb-2 list-decimal pl-5 last:mb-0">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1 last:mb-0">{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  }}
+                >
+                  {String(msg.content || "")}
+                </ReactMarkdown>
+              ) : (
+                msg.content
+              )}
             </div>
           ))}
           {loading && (

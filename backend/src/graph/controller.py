@@ -12,6 +12,8 @@ from src.agents.sanity_agent import sanity_agent
 
 class LeaseState(TypedDict, total=False):
     file_path: str
+    source_filename: str
+    source_s3_key: str
     raw_text: str
     structured_data: Dict[str, Any]
     analytics_result: Dict[str, Any]

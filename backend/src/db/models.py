@@ -12,12 +12,19 @@ class Lease(Base):
     tenant_name = Column(String)
     region = Column(String)
     base_rent = Column(Float)
+    base_rent_currency = Column(String, nullable=True)
+    normalized_base_rent = Column(Float, nullable=True)
+    normalized_currency = Column(String, nullable=True)
+    fx_rate_used = Column(Float, nullable=True)
+    fx_rate_date = Column(String, nullable=True)
 
     escalation_percent = Column(Float, nullable=True)
     renewal_years = Column(Float, nullable=True)
     deviation_score = Column(Float, nullable=True)
 
     renewal_risk_score = Column(Float)
+    source_filename = Column(String, nullable=True)
+    source_s3_key = Column(String, nullable=True)
 
     # 🔥 Add these
     structured_data = Column(Text)   # store JSON as string
@@ -39,7 +46,14 @@ class LeaseAnalytics(Base):
     market = Column(String, nullable=True)
 
     # Core economics
+    base_rent = Column(Float, nullable=True)
+    base_rent_currency = Column(String, nullable=True)
+    normalized_base_rent = Column(Float, nullable=True)
+    normalized_currency = Column(String, nullable=True)
+    fx_rate_used = Column(Float, nullable=True)
+    fx_rate_date = Column(String, nullable=True)
     effective_rent_psf = Column(Float, nullable=True)
+    effective_rent_psf_currency = Column(String, nullable=True)
     tenant_improvement_allowance = Column(Float, nullable=True)
     expense_recovery_structure = Column(String, nullable=True)
     tenant_pro_rata_share = Column(Float, nullable=True)

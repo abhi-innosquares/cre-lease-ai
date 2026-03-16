@@ -5,6 +5,7 @@ Application settings and configuration
 import os
 from pathlib import Path
 from typing import Optional
+from datetime import date
 
 
 class Settings:
@@ -23,6 +24,11 @@ class Settings:
     OPENAI_MODEL: str = "gpt-4o"
     OPENAI_TEMPERATURE: float = 0.1
     OPENAI_MAX_TOKENS: int = 4000
+
+    # Currency normalization configuration
+    BASE_CURRENCY: str = os.environ.get("BASE_CURRENCY", "USD")
+    FX_RATE_DATE: str = os.environ.get("FX_RATE_DATE", date.today().isoformat())
+    FX_RATES_JSON: Optional[str] = os.environ.get("FX_RATES_JSON")
     
     # OCR Configuration
     TESSERACT_PATH: str = r"C:\Program Files\Tesseract-OCR\tesseract.exe"

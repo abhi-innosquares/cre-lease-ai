@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 function Field({ label, value }) {
   return (
@@ -21,6 +22,12 @@ function LeaseCard({ leaseData }) {
   const end       = d.lease_end_date  || d.expirationDate        || d.leaseDates?.expirationDate   || "—";
   const rent      = d.base_rent       || d.financialTerms?.baseRentSchedule?.[0]?.annualBaseRent   || "—";
   const currency  = d.currency        || d.financialTerms?.currency || "";
+  const normalizedRent = leaseData.analytics_result?.normalized_base_rent ?? d.normalized_base_rent;
+  const normalizedCurrency = leaseData.analytics_result?.normalized_currency ?? d.normalized_currency;
+  const rentDisplay = leaseData.analytics_result?.base_rent_display ?? formatCurrencyAmount(rent, currency);
+  const normalizedRentDisplay = leaseData.analytics_result?.normalized_base_rent_display ?? formatCurrencyAmount(normalizedRent, normalizedCurrency);
+  const fxRateUsed = leaseData.analytics_result?.fx_rate_used ?? d.currencyAnalysis?.fx_rate_used;
+  const fxRateDate = leaseData.analytics_result?.fx_rate_date ?? d.currencyAnalysis?.fx_rate_date;
   const escalation= d.escalation_percent != null ? `${d.escalation_percent}%` : "—";
   const renewal   = d.renewal_years   != null ? `${d.renewal_years} yr` : "—";
   const region    = d.region          || d.premises?.propertyAddress || "—";
@@ -39,13 +46,15 @@ function LeaseCard({ leaseData }) {
           <Field label="Tenant" value={tenant} />
           <Field label="Landlord" value={landlord} />
           <Field label="Region / Property" value={region} />
-          <Field label="Base Rent" value={rent ? `${currency} ${rent}` : "—"} />
+          <Field label="Base Rent" value={rentDisplay} />
+          <Field label={`Portfolio Basis Rent${normalizedCurrency ? ` (${normalizedCurrency})` : ""}`} value={normalizedRentDisplay} />
           <Field label="Commencement" value={start} />
           <Field label="Expiry" value={end} />
           <Field label="Escalation" value={escalation} />
           <Field label="Renewal Term" value={renewal} />
           <Field label="Termination Clause" value={termination} />
           <Field label="Force Majeure" value={forceMajeure} />
+          <Field label="FX Basis" value={fxRateUsed ? `${fxRateUsed} on ${fxRateDate || "current config"}` : "Not applied"} />
         </div>
 
         {/* Risk + Flags */}

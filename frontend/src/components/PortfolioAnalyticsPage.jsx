@@ -107,6 +107,8 @@ function PortfolioAnalyticsPage() {
                   <th className="pb-2 text-left font-medium">Tenant</th>
                   <th className="pb-2 text-left font-medium">Region</th>
                   <th className="pb-2 text-left font-medium">Expiration</th>
+                  <th className="pb-2 text-left font-medium">Base Rent</th>
+                  <th className="pb-2 text-left font-medium">Normalized Rent</th>
                   <th className="pb-2 text-left font-medium">Eff Rent / SF</th>
                   <th className="pb-2 text-left font-medium">Risk</th>
                   <th className="pb-2 text-left font-medium">Renewal Option</th>
@@ -120,7 +122,9 @@ function PortfolioAnalyticsPage() {
                     <td className="py-3 pr-4">{lease.tenant_name || "-"}</td>
                     <td className="py-3 pr-4">{lease.region || "-"}</td>
                     <td className="py-3 pr-4">{lease.expiration_date || "-"}</td>
-                    <td className="py-3 pr-4">{lease.effective_rent_psf ?? "-"}</td>
+                    <td className="py-3 pr-4">{lease.base_rent_display || "-"}</td>
+                    <td className="py-3 pr-4">{lease.normalized_base_rent_display || "-"}</td>
+                    <td className="py-3 pr-4">{lease.effective_rent_psf != null ? `${lease.effective_rent_psf} ${lease.effective_rent_psf_currency || ""}`.trim() : "-"}</td>
                     <td className="py-3 pr-4">{lease.renewal_risk_score ?? "-"}</td>
                     <td className="py-3 pr-4">{lease.has_renewal_option ?? "-"}</td>
                     <td className="py-3">{lease.has_termination_option ?? "-"}</td>

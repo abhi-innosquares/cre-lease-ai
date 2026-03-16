@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 from src.db.database import SessionLocal
 from src.db.models import Lease
 from src.agents.chat_agent import chat_agent
+from src.utils.currency import enrich_structured_data_with_currency, format_currency_amount
 
 router = APIRouter()
 
@@ -133,12 +134,19 @@ def _find_last_referenced_lease_id(chat_history: list[dict[str, Any]]):
 
 
 def _format_lease_details(lease_item: dict):
+    base_rent_display = lease_item.get("base_rent_display") or format_currency_amount(
+        lease_item.get("base_rent"), lease_item.get("base_rent_currency")
+    )
+    normalized_display = lease_item.get("normalized_base_rent_display") or format_currency_amount(
+        lease_item.get("normalized_base_rent"), lease_item.get("normalized_currency")
+    )
     return "\n".join(
         [
             f"Lease {lease_item.get('lease_id')} details:",
             f"- Tenant: {lease_item.get('tenant_name') or 'unknown'}",
             f"- Region: {lease_item.get('region') or 'unknown'}",
-            f"- Base Rent: {lease_item.get('base_rent') if lease_item.get('base_rent') is not None else 'unknown'}",
+            f"- Base Rent: {base_rent_display}",
+            f"- Normalized Rent ({lease_item.get('normalized_currency') or 'portfolio basis'}): {normalized_display}",
             f"- Commencement Date: {lease_item.get('commencement_date') or 'unknown'}",
             f"- Expiration Date: {lease_item.get('expiration_date') or 'unknown'}",
             f"- Renewal Risk Score: {lease_item.get('renewal_risk_score') if lease_item.get('renewal_risk_score') is not None else 'unknown'}",
@@ -164,6 +172,9 @@ def portfolio_chat(payload: PortfolioChatRequest):
         except Exception:
             structured_data = {}
 
+        structured_data = enrich_structured_data_with_currency(structured_data, lease.raw_text or "")
+        currency_analysis = structured_data.get("currencyAnalysis") or {}
+
         expiration_date = _extract_expiration_date(structured_data)
         commencement_date = _extract_commencement_date(structured_data)
         tenant_name = _extract_tenant_name(lease, structured_data)
@@ -174,6 +185,11 @@ def portfolio_chat(payload: PortfolioChatRequest):
                 "tenant_name": tenant_name,
                 "region": lease.region,
                 "base_rent": lease.base_rent,
+                "base_rent_currency": lease.base_rent_currency or currency_analysis.get("original_currency"),
+                "base_rent_display": structured_data.get("base_rent_display") or format_currency_amount(lease.base_rent, lease.base_rent_currency),
+                "normalized_base_rent": lease.normalized_base_rent if lease.normalized_base_rent is not None else currency_analysis.get("normalized_annual_base_rent"),
+                "normalized_currency": lease.normalized_currency or currency_analysis.get("normalized_currency"),
+                "normalized_base_rent_display": structured_data.get("normalized_base_rent_display") or format_currency_amount(lease.normalized_base_rent, lease.normalized_currency),
                 "renewal_risk_score": lease.renewal_risk_score,
                 "commencement_date": commencement_date,
                 "expiration_date": expiration_date,
@@ -234,6 +250,8 @@ def portfolio_chat(payload: PortfolioChatRequest):
     - Show empathy and provide context
     - Don't just repeat data - provide analysis and insights
     - Use phrases like "I found...", "Looking at your portfolio...", "Here's what I see..."
+    - Use normalized_base_rent when comparing leases across different currencies
+    - Always mention the original currency amount when discussing a specific lease
     
     Previous conversation context:
     {json.dumps([{"role": msg.get("role"), "content": msg.get("content", "")[:200]} for msg in chat_history[-6:]], indent=2)}

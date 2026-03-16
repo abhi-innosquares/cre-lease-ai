@@ -11,6 +11,7 @@ import BatchResultsPanel from "./components/BatchResultsPanel";
 import ProcessingStatusPanel from "./components/ProcessingStatusPanel";
 import PortfolioChatPage from "./components/PortfolioChatPage";
 import PortfolioAnalyticsPage from "./components/PortfolioAnalyticsPage";
+import LeaseSearchPage from "./components/LeaseSearchPage";
 import { Card, CardContent } from "@/components/ui/card";
 import "./styles.css";
 
@@ -103,6 +104,15 @@ function App() {
             }`}
           >
             Portfolio Analytics
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePage("lease-search")}
+            className={`w-full cursor-pointer rounded-md px-3 py-2 text-left ${
+              activePage === "lease-search" ? "bg-slate-900 text-slate-100" : "text-slate-400"
+            }`}
+          >
+            Lease Search
           </button>
         </div>
 
@@ -224,6 +234,23 @@ function App() {
             <section className="mt-6 animate-fade-up">
               <PortfolioCard />
             </section>
+          </section>
+        )}
+
+        {activePage === "lease-search" && (
+          <section className="animate-fade-up">
+            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Lease Search</h1>
+                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                  Search leases by ID or tenant name and open the linked source document.
+                </p>
+              </div>
+              <div className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700">
+                Search Page
+              </div>
+            </div>
+            <LeaseSearchPage />
           </section>
         )}
       </main>

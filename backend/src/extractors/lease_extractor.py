@@ -9,6 +9,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 import os
 
+from src.utils.currency import enrich_structured_data_with_currency
+
 
 class LeaseExtractor:
     """Main class for extracting structured data from lease documents."""
@@ -63,6 +65,9 @@ class LeaseExtractor:
             "financialTerms": {
                 "baseRentSchedule": [],
                 "annualBaseRent": None,
+                "currency": None,
+                "normalizedAnnualBaseRent": None,
+                "normalizedCurrency": None,
                 "rentEscalationType": None,
                 "securityDeposit": None,
                 "proRataShare": None,
@@ -109,6 +114,7 @@ You MUST:
 - Convert textual numbers to numeric values
 - Normalize dates to ISO format (YYYY-MM-DD)
 - Convert rent expressed as $/SF/year into total annual and monthly rent
+- Capture rent currency using ISO currency codes such as USD, INR, or CNY
 - Parse conditional clauses but flag if ambiguous
 - Extract renewal and termination options carefully
 
@@ -248,9 +254,11 @@ Return ONLY valid JSON matching the schema above. Do not include any explanatory
             raise ValueError("Lease text cannot be empty")
         
         if self.use_ai:
-            return self.extract_with_ai(lease_text)
+            result = self.extract_with_ai(lease_text)
         else:
-            return self.extract_with_rules(lease_text)
+            result = self.extract_with_rules(lease_text)
+
+        return enrich_structured_data_with_currency(result, lease_text)
     
     def extract_to_json(self, lease_text: str, pretty: bool = True) -> str:
         """

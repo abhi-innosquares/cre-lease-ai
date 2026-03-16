@@ -2,6 +2,8 @@ from langchain_openai import ChatOpenAI
 import json
 from typing import Any
 
+from src.utils.currency import format_currency_amount
+
 
 # create a single LLM instance when the module loads to avoid repeated setup cost
 llm = ChatOpenAI(
@@ -31,13 +33,20 @@ def chat_agent(state: dict):
     # Extract key lease details for quick reference
     key_details = ""
     if structured_data:
+        original_display = structured_data.get("base_rent_display") or format_currency_amount(
+            structured_data.get("base_rent"), structured_data.get("currency")
+        )
+        normalized_display = structured_data.get("normalized_base_rent_display") or format_currency_amount(
+            structured_data.get("normalized_base_rent"), structured_data.get("normalized_currency")
+        )
         key_details = f"""
 Key Lease Information:
 - Tenant: {structured_data.get('tenant_name', 'Not specified')}
 - Location: {structured_data.get('property_address', 'Not specified')}
 - Commencement: {structured_data.get('commencement_date', 'Not specified')}
 - Expiration: {structured_data.get('expiration_date', 'Not specified')}
-- Annual Base Rent: {structured_data.get('base_rent', 'Not specified')}
+- Annual Base Rent: {original_display}
+- Normalized Base Rent ({structured_data.get('normalized_currency', 'portfolio basis')}): {normalized_display}
 \n"""
 
     prompt = f"""
@@ -49,6 +58,7 @@ Key Lease Information:
     - Show understanding of the user's needs
     - Provide context and explanations, not just data
     - Use phrases like "I see here that...", "Based on the lease...", "Looking at this..."
+    - If rent is discussed, mention both the original currency and the normalized portfolio-basis amount when available
     - Avoid robotic or formal language
     
     {history_context}{key_details}

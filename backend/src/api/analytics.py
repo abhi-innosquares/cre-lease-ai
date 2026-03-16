@@ -5,6 +5,7 @@ import json
 
 from src.db.database import SessionLocal
 from src.db.models import Lease, LeaseAnalytics
+from src.utils.currency import enrich_structured_data_with_currency, format_currency_amount
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -84,6 +85,9 @@ def portfolio_analytics_leases():
             except Exception:
                 structured_data = {}
 
+            structured_data = enrich_structured_data_with_currency(structured_data, lease.raw_text or "")
+            currency_analysis = structured_data.get("currencyAnalysis") or {}
+
             analytics = analytics_by_lease_id.get(lease.id)
             expiration_date = (analytics.expiration_date if analytics else None) or _extract_expiration_date(structured_data)
             tenant_name = _extract_tenant_name(lease, structured_data)
@@ -102,8 +106,14 @@ def portfolio_analytics_leases():
                     "tenant_name": tenant_name,
                     "region": lease.region,
                     "base_rent": lease.base_rent,
+                    "base_rent_currency": lease.base_rent_currency or currency_analysis.get("original_currency"),
+                    "base_rent_display": structured_data.get("base_rent_display") or format_currency_amount(lease.base_rent, lease.base_rent_currency),
+                    "normalized_base_rent": lease.normalized_base_rent if lease.normalized_base_rent is not None else currency_analysis.get("normalized_annual_base_rent"),
+                    "normalized_currency": lease.normalized_currency or currency_analysis.get("normalized_currency"),
+                    "normalized_base_rent_display": structured_data.get("normalized_base_rent_display") or format_currency_amount(lease.normalized_base_rent, lease.normalized_currency),
                     "expiration_date": expiration_date,
                     "effective_rent_psf": analytics.effective_rent_psf if analytics else None,
+                    "effective_rent_psf_currency": (analytics.effective_rent_psf_currency if analytics else None) or lease.normalized_currency or currency_analysis.get("normalized_currency"),
                     "renewal_risk_score": lease.renewal_risk_score,
                     "has_renewal_option": analytics.has_renewal_option if analytics else None,
                     "has_termination_option": analytics.has_termination_option if analytics else None,

@@ -30,3 +30,9 @@ export const triggerProcessing = (files) =>
 
 export const getJobStatus = (jobId) =>
   API.get(`/upload/process/${jobId}`);
+
+export const searchLeases = (params) =>
+  API.get("/leases/search", { params });
+
+export const getLeaseDocumentLink = (leaseId) =>
+  API.get(`/leases/${leaseId}/document-link`);

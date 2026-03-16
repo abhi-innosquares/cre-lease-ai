@@ -51,10 +51,11 @@ async def upload(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(uploaded_file.file, buffer)
 
-        result = graph.invoke({"file_path": file_path})
+        result = graph.invoke({"file_path": file_path, "source_filename": uploaded_file.filename})
         lease_results.append(
             {
                 "filename": uploaded_file.filename,
+            "source_s3_key": result.get("source_s3_key"),
                 "lease_id": result.get("lease_id"),
                 "structured_data": result.get("structured_data"),
                 "analytics_result": result.get("analytics_result"),
@@ -105,6 +106,13 @@ app.include_router(chat_router)
 # ---------------------------
 from src.api.analytics import router as analytics_router
 app.include_router(analytics_router)
+
+
+# ---------------------------
+# Lease Search
+# ---------------------------
+from src.api.lease_search import router as lease_search_router
+app.include_router(lease_search_router)
 
 
 # ---------------------------
